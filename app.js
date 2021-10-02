@@ -61,7 +61,7 @@ function parseCards(dataArray){
 }
 
 var req = {hasmore:1, offset:0, iter:0};
-//populate(req);
+populate(req);
 
 var last_dynamic_id = 0;
 var last_offset = 0;
