@@ -2,6 +2,7 @@ const { MongoClient } = require('mongodb');
 const url = 'mongodb://localhost:27017';
 const client = new MongoClient(url);
 const dbName = 'app'
+const axios = require('axios');
 
 
 async function save2mongo(dataArray){
@@ -21,7 +22,6 @@ function populate(req){
     }
     var offset = req.offset;
     var nextReq = {iter: req.iter};
-    const axios = require('axios');
     axios.get('https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history',{
         params:{
             host_uid:682181583,
@@ -61,11 +61,36 @@ function parseCards(dataArray){
 }
 
 var req = {hasmore:1, offset:0, iter:0};
-populate(req);
+//populate(req);
 
-var last_dynamic_id;
-var last_offset;
+var last_dynamic_id = 0;
+var last_offset = 0;
 
-function update(lastId, lastOffset){
+function update(){
+    axios.get('https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history',{
+        params:{
+            host_uid:682181583,
+            offset_dynamic_id:0
+        }
+    })
+    .then(res => {
+        let cur_dynamic_id = res.data.data.cards[0].dynamic_id;
+        let cur_offset = res.data.data.next_offset;
+        if(last_dynamic_id != cur_dynamic_id || last_offset != cur_offset){
+            var dataArray = res.data.data.cards;
+            dataArray = parseCards(dataArray);
+            save2mongo(dataArray)
+            .then(console.log)
+            .catch(console.error)
+            .finally(() => {
+                client.close();
+                last_dynamic_id = cur_dynamic_id;
+                last_offset = cur_offset;
+            })
+        }
+    })
+    .catch(console.error)
+    .finally(console.log("update checked"));
 }
 
+setInterval(update, 500);
