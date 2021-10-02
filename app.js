@@ -16,7 +16,7 @@ async function save2mongo(dataArray){
     return 'done.';
 
 }
-function populate(req){
+async function populate(req){
     if(req.hasmore != 1){
         return;
     }
@@ -61,8 +61,6 @@ function parseCards(dataArray){
 }
 
 var req = {hasmore:1, offset:0, iter:0};
-populate(req);
-
 var last_dynamic_id = 0;
 var last_offset = 0;
 
@@ -93,4 +91,5 @@ function update(){
     .finally(console.log("update checked"));
 }
 
+populate(req);
 setInterval(update, 500);
