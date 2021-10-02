@@ -15,11 +15,12 @@ async function save2mongo(dataArray){
     return 'done.';
 
 }
-function main(req){
+function populate(req){
     if(req.hasmore != 1){
         return;
     }
     var offset = req.offset;
+    var nextReq = {iter: req.iter};
     const axios = require('axios');
     axios.get('https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history',{
         params:{
@@ -28,17 +29,27 @@ function main(req){
         }
     })
     .then(res => 
-        {
+        {   
+            nextReq = {hasmore: res.data.data.has_more, offset : res.data.data.next_offset, iter: req.iter+1}
             //console.log(res.data.data.cards)
             var dataArray = res.data.data.cards;
             dataArray = parseCards(dataArray);
             save2mongo(dataArray)
-
             .then(console.log)
             .catch(console.error)
-            .finally(() => client.close())        })
+            .finally(() => client.close())})
     .catch(console.error)
-    .finally();
+    .finally(
+        () => {
+            console.log(offset);
+            console.log(nextReq.iter);
+            if(nextReq.offset == req.offset){
+                return;
+            }
+            populate(nextReq);
+        }
+    );
+    return;
 }
 
 function parseCards(dataArray){
@@ -49,4 +60,12 @@ function parseCards(dataArray){
     return dataArray;
 }
 
-main();
+var req = {hasmore:1, offset:0, iter:0};
+populate(req);
+
+var last_dynamic_id;
+var last_offset;
+
+function update(lastId, lastOffset){
+}
+
