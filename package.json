@@ -9,6 +9,9 @@
   "author": "Papapapadopoulos",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "axios": "^0.21.4",
+    "express": "^4.17.1",
+    "mongodb": "^4.1.2",
+    "mongoose": "^6.0.8"
   }
 }
